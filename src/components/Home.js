@@ -1,6 +1,6 @@
 import React from 'react';
 import $ from 'jquery';
-import { Tabs, Button, Spin } from 'antd';
+import { Tabs, Spin } from 'antd';
 import {API_ROOT, AUTH_PREFIX, GEO_OPTIONS, POS_KEY, TOKEN_KEY} from "../constants";
 import { Gallery } from './Gallery';
 import {CreatePostButton} from "./CreatePostButton"
@@ -76,22 +76,21 @@ export class Home extends React.Component {
     }
 
     loadNearbyPosts = () => {
-        //const { lat, lon } = JSON.parse(localStorage.getItem(POS_KEY));
-        const lat = 37.7915953;
-        const lon = -122.3937977;
-        this.setState({ loadingPosts: true, error: ''});
-        $.ajax({
+        const { lat, lon } = JSON.parse(localStorage.getItem(POS_KEY));
+        this.setState({ loadingPosts: true });
+        return $.ajax({
             url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
             method: 'GET',
             headers: {
-                Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`
+                'Authorization': `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`,
             },
         }).then((response) => {
-            this.setState({ posts: response, loadingPosts: false, error: '' });
+            this.setState({ posts: response, error: '' });
             console.log(response);
         }, (error) => {
-            this.setState({ loadingPosts: false, error: error.responseText });
-            console.log(error);
+            this.setState({ error: error.responseText });
+        }).then(() => {
+            this.setState({ loadingPosts: false });
         }).catch((error) => {
             console.log(error);
         });
@@ -99,8 +98,7 @@ export class Home extends React.Component {
 
 
     render() {
-        const createPostButton = <CreatePostButton/>;
-
+        const createPostButton = <CreatePostButton loadNearbyPosts={this.loadNearbyPosts}/>;
         return (
             <Tabs tabBarExtraContent={createPostButton} className="main-tabs">
                 <TabPane tab="Posts" key="1">
